@@ -1,0 +1,10 @@
+{
+  "projects": [
+    {
+      "name": "status",
+      "args": ["python", "status.py"],
+      "sleeptime": 1,
+      "watch_modified": "test"
+    }
+  ]
+}
