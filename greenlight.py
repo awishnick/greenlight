@@ -50,11 +50,17 @@ def api_project_detail(project_idx):
 
     data = {
         'name': project_names[project_idx],
-        'up_to_date': rr.up_to_date
+        'id': project_idx,
+        'up_to_date': rr.up_to_date,
     }
+
+    if rr.mtime:
+        data['mtime'] = rr.mtime
 
     if r:
         data['returncode'] = r.returncode
+        data['out'] = r.out
+        data['err'] = r.err
 
     return json_response(data)
 
@@ -78,7 +84,7 @@ class Status:
 
 class Worker:
     def __init__(self, args, sleeptime, watch_modified):
-        self.args = args
+        self.args = [str(arg) for arg in args]
         self.sleeptime = sleeptime
         self.watch_modified = watch_modified
 
@@ -111,7 +117,8 @@ class Worker:
     def mtime_or_zero(self):
         if not os.path.exists(self.watch_modified):
             return 0
-        return os.path.getmtime(self.watch_modified)
+        # Javascript wants times to be in seconds.
+        return os.path.getmtime(self.watch_modified) * 1000
 
 
 class ResultReceiver:

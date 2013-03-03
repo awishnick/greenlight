@@ -16,12 +16,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="project in projects" ng-class="{success: project.returncode == 0, error: (project.returncode != 0 && project.returncode != null) && project.mtime, warning: project.mtime == null || project.returncode == null}">
+        <tr ng-repeat="project in projects" ng-class="{success: isProjectSuccess(project), error: isProjectFailure(project), warning: isProjectNeverRun(project)}">
           <td>
             <a href="#/projects/{{project.id}}">{{project.name}}</a>
           </td>
           <td>
-            <spinner ng-show="!project.up_to_date && project.mtime"></spinner>
+            <spinner ng-show="isProjectBeingRun(project)"></spinner>
             <i class="icon-ok" ng-show="project.up_to_date && project.returncode == 0"></i>
             <i class="icon-warning-sign" ng-show="project.up_to_date && project.returncode != 0"></i>
             <i class="icon-question-sign" ng-show="!project.mtime"></i>

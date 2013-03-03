@@ -4,6 +4,50 @@
   </div>
 </div>
 
-<div class="container">
-  <h1>{{project.name}}</h1>
+<div class="row-fluid">
+  <div class="span2"></div>
+  <div class="span8">
+    <div class="text-success" ng-show="isProjectSuccess(project)">
+      <h1>
+        {{project.name}}
+        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
+      </h1>
+    </div>
+    <div class="text-error" ng-show="isProjectFailure(project)">
+      <h1>
+        {{project.name}}
+        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
+      </h1>
+    </div>
+    <div class="text-warning" ng-show="isProjectNeverRun(project)">
+      <h1>
+        {{project.name}}
+        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
+      </h1>
+    </div>
+
+    <table class="table table-bordered">
+      <tbody>
+        <tr>
+          <td class="span2">Last run</td>
+          <td ng-show="project.mtime != null">{{project.mtime | date:'medium'}}</td>
+          <td ng-show="project.mtime == null">Never</td>
+        </tr>
+        <tr ng-show="project.out" ng-class="{success: isProjectSuccess(project)}">
+          <td class="span2">Output</td>
+          <td><pre>{{project.out}}</pre></td>
+        </tr>
+        <tr ng-show="project.err" class="error">
+          <td>Errors</td>
+          <td><pre>{{project.err}}</pre></td>
+        </tr>
+        <tr ng-show="project.returncode != null">
+          <td>Return code</td>
+          <td>{{project.returncode}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+  <div class="span2"></div>
 </div>
