@@ -7,10 +7,11 @@ from multiprocessing import Process, Pipe
 import sys
 import os.path
 
-app = Flask(__name__)
-workers = {}
-processes = {}
-result_receivers = {}
+app = Flask(__name__, static_folder='static', static_url_path='')
+workers = []
+processes = []
+result_receivers = []
+project_names = []
 
 
 def json_response(data):
@@ -20,19 +21,35 @@ def json_response(data):
 
 @app.route('/api/projects')
 def api_projects():
-    data = {
-        'projects': [p for p in result_receivers.iterkeys()]
-    }
-    return json_response(data)
+    projects = {}
+    for idx, name in enumerate(project_names):
+        rr = result_receivers[idx]
+
+        project = {
+            'name': name,
+            'id': idx,
+            'up_to_date': rr.up_to_date,
+        }
+
+        if rr.mtime:
+            project['mtime'] = rr.mtime
+
+        r = rr.get()
+        if r:
+            project['returncode'] = r.returncode
+
+        projects[idx] = project
+
+    return json_response(projects)
 
 
-@app.route('/api/projects/<project>')
-def api_project_detail(project):
-    rr = result_receivers[project]
+@app.route('/api/projects/<int:project_idx>')
+def api_project_detail(project_idx):
+    rr = result_receivers[project_idx]
     r = rr.get()
 
     data = {
-        'name': project,
+        'name': project_names[project_idx],
         'up_to_date': rr.up_to_date
     }
 
@@ -43,18 +60,20 @@ def api_project_detail(project):
 
 
 class Result:
-    def __init__(self, returncode, out, err):
+    def __init__(self, returncode, out, err, mtime):
         self.returncode = returncode
         self.out = out
         self.err = err
+        self.mtime = mtime
 
     def __unicode__(self):
-        return str((self.returncode, self.out, self.err))
+        return str((self.returncode, self.out, self.err, self.mtime))
 
 
 class Status:
-    def __init__(self, status):
+    def __init__(self, status, mtime):
         self.status = status
+        self.mtime = mtime
 
 
 class Worker:
@@ -73,11 +92,11 @@ class Worker:
 
             self.mtime = self.mtime_or_zero()
 
-            conn.send(Status('updating'))
+            conn.send(Status('updating', self.mtime))
 
             p = Popen(self.args, stdout=PIPE, stderr=PIPE)
             (out, err) = p.communicate()
-            r = Result(p.returncode, out, err)
+            r = Result(p.returncode, out, err, self.mtime)
             conn.send(r)
 
     def need_to_update(self):
@@ -101,6 +120,7 @@ class ResultReceiver:
         self.result = None
         self.status = None
         self.up_to_date = False
+        self.mtime = None
 
     def get(self):
         while self.conn.poll():
@@ -111,6 +131,7 @@ class ResultReceiver:
             else:
                 self.result = r
                 self.up_to_date = True
+            self.mtime = r.mtime
 
         return self.result
 
@@ -126,18 +147,19 @@ def main(config_file):
 
     projects = config['projects']
 
-    for project in projects:
+    for idx, project in enumerate(projects):
         name = project['name']
         w = Worker(project['args'], project['sleeptime'],
                    project['watch_modified'])
         parent_conn, child_conn = Pipe()
         proc = Process(target=run_worker, args=(w, child_conn))
 
-        workers[name] = w
-        processes[name] = proc
-        result_receivers[name] = ResultReceiver(parent_conn)
+        workers.append(w)
+        processes.append(proc)
+        result_receivers.append(ResultReceiver(parent_conn))
+        project_names.append(name)
 
-    for p in processes.itervalues():
+    for p in processes:
         p.start()
 
     app.debug = True
