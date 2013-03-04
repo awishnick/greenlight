@@ -33,8 +33,18 @@
           <td ng-show="project.mtime == null">Never</td>
         </tr>
         <tr ng-show="project.out" ng-class="{success: isProjectSuccess(project)}">
-          <td class="span2">Output</td>
-          <td><pre>{{project.out}}</pre></td>
+          <td colspan="2">
+            <div class="accordion-heading">
+              <a class="accordion-toggle" data-toggle="collapse" href="#collapseOutput">
+                Output
+              </a>
+            </div>
+            <div id="collapseOutput" class="accordion-body collapse">
+              <div class="accordion-inner">
+                <pre>{{project.out}}</pre>
+              </div>
+            </div>
+          </td>
         </tr>
         <tr ng-show="project.err" class="error">
           <td>Errors</td>
