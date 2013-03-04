@@ -151,8 +151,13 @@ def run_worker(w, child_conn):
 
 def main(config_file):
     global workers, processes, result_receivers
-    with open(config_file, 'r') as f:
-        config = json.load(f)
+
+    try:
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+    except ValueError as e:
+        print('Error parsing config file: {}'.format(e), file=sys.stderr)
+        return -1
 
     projects = config['projects']
 
