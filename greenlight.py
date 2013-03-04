@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""Usage: greenlight.py config_file"""
+from __future__ import print_function
 from flask import Flask, Response
 import json
 from subprocess import Popen, PIPE
@@ -172,6 +174,14 @@ def main(config_file):
     app.debug = True
     app.run()
 
+    return 0
+
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    try:
+        config_file = sys.argv[1]
+    except IndexError:
+        print(__doc__, file=sys.stderr)
+        sys.exit(-1)
+
+    sys.exit(main(sys.argv[1]))
