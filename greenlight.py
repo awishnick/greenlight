@@ -182,7 +182,7 @@ def main(config_file):
         p.start()
 
     app.debug = True
-    app.run()
+    app.run(host='0.0.0.0')
 
     return 0
 
