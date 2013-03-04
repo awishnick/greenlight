@@ -85,10 +85,11 @@ class Status:
 
 
 class Worker:
-    def __init__(self, args, sleeptime, watch_modified):
+    def __init__(self, args, sleeptime, watch_modified, cwd):
         self.args = [str(arg) for arg in args]
         self.sleeptime = sleeptime
         self.watch_modified = watch_modified
+        self.cwd = cwd
 
         self.mtime = None
 
@@ -102,7 +103,7 @@ class Worker:
 
             conn.send(Status('updating', self.mtime))
 
-            p = Popen(self.args, stdout=PIPE, stderr=PIPE)
+            p = Popen(self.args, stdout=PIPE, stderr=PIPE, cwd=self.cwd)
             (out, err) = p.communicate()
             r = Result(p.returncode, out, err, self.mtime)
             conn.send(r)
@@ -163,8 +164,12 @@ def main(config_file):
 
     for idx, project in enumerate(projects):
         name = project['name']
+        try:
+            cwd = project['cwd']
+        except KeyError:
+            cwd = None
         w = Worker(project['args'], project['sleeptime'],
-                   project['watch_modified'])
+                   project['watch_modified'], cwd)
         parent_conn, child_conn = Pipe()
         proc = Process(target=run_worker, args=(w, child_conn))
 
