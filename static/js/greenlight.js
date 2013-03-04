@@ -100,6 +100,9 @@ function projectHasChanged(old_project, new_project) {
     if (new_project.mtime != old_project.mtime) {
         return true;
     }
+    if (new_project.args != old_project.args) {
+        return true;
+    }
 
     return false;
 }

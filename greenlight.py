@@ -48,12 +48,14 @@ def api_projects():
 @app.route('/api/projects/<int:project_idx>')
 def api_project_detail(project_idx):
     rr = result_receivers[project_idx]
+    worker = workers[project_idx]
     r = rr.get()
 
     data = {
         'name': project_names[project_idx],
         'id': project_idx,
         'up_to_date': rr.up_to_date,
+        'args': worker.args
     }
 
     if rr.mtime:
