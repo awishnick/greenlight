@@ -103,7 +103,10 @@ function installProjectHelpers($scope) {
         if (project.start_time == null) {
             return 0;
         }
-        return curtime - project.start_time;
+        var elapsed = curtime - project.start_time;
+        if (elapsed < 0) {
+            return 0;
+        }
     }
 
     $scope.getProjectProgressPercent = function(project) {
