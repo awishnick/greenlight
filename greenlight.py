@@ -8,6 +8,7 @@ import time
 from multiprocessing import Process, Pipe
 import sys
 import os.path
+from collections import deque
 
 app = Flask(__name__, static_folder='static', static_url_path='')
 workers = []
@@ -60,6 +61,12 @@ def api_project_detail(project_idx):
 
     if rr.mtime:
         data['mtime'] = rr.mtime
+    avg_runtime = rr.get_avg_runtime()
+    if avg_runtime:
+        data['avg_runtime'] = avg_runtime
+
+    if rr.status:
+        data['start_time'] = rr.status.start_time
 
     if r:
         data['returncode'] = r.returncode
@@ -84,9 +91,10 @@ class Result:
 
 
 class Status:
-    def __init__(self, status, mtime):
+    def __init__(self, status, mtime, start_time):
         self.status = status
         self.mtime = mtime
+        self.start_time = start_time
 
 
 def seconds_to_milliseconds(sec):
@@ -110,9 +118,10 @@ class Worker:
 
             self.mtime = self.mtime_or_zero()
 
-            conn.send(Status('updating', self.mtime))
-
             start_time = time.time()
+            conn.send(Status('updating', self.mtime,
+                             seconds_to_milliseconds(start_time)))
+
             p = Popen(self.args, stdout=PIPE, stderr=PIPE, cwd=self.cwd)
             (out, err) = p.communicate()
             end_time = time.time()
@@ -142,6 +151,7 @@ class ResultReceiver:
         self.status = None
         self.up_to_date = False
         self.mtime = None
+        self.runtimes = deque(maxlen=100)
 
     def get(self):
         while self.conn.poll():
@@ -152,9 +162,15 @@ class ResultReceiver:
             else:
                 self.result = r
                 self.up_to_date = True
+                self.runtimes.append(r.runtime)
             self.mtime = r.mtime
 
         return self.result
+
+    def get_avg_runtime(self):
+        if not self.runtimes:
+            return None
+        return sum(self.runtimes) / len(self.runtimes)
 
 
 def run_worker(w, child_conn):

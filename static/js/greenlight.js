@@ -71,6 +71,9 @@ angular.module('greenlight', ['greenlightServices'])
                               "{Minutes?, }{seconds}");
         }
     })
+    .filter('round', function() {
+        return Math.round;
+    })
     ;
 
 function installProjectHelpers($scope) {
@@ -94,6 +97,34 @@ function installProjectHelpers($scope) {
         return !project.up_to_date &&
                project.mtime;
     }
+
+    $scope.getProjectElapsedTime = function(project) {
+        curtime = new Date().getTime();
+        if (project.start_time == null) {
+            return 0;
+        }
+        return curtime - project.start_time;
+    }
+
+    $scope.getProjectProgressPercent = function(project) {
+        if (project.up_to_date) {
+            return 100;
+        }
+
+        if (project.avg_runtime == null || project.start_time == null) {
+            return 0;
+        }
+
+        curtime = new Date().getTime();
+        percent = 100 * (curtime - project.start_time) / project.avg_runtime;
+        if (percent < 0 ) {
+            return 0;
+        }
+        if (percent > 100) {
+            return 100;
+        }
+        return percent;
+    }
 }
 
 function projectHasChanged(old_project, new_project) {
@@ -107,6 +138,12 @@ function projectHasChanged(old_project, new_project) {
         return true;
     }
     if (new_project.args != old_project.args) {
+        return true;
+    }
+    if (new_project.start_time != old_project.start_time) {
+        return true;
+    }
+    if (new_project.avg_runtime != old_project.avg_runtime) {
         return true;
     }
 

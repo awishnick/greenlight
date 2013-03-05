@@ -9,20 +9,24 @@
     <div class="text-success" ng-show="isProjectSuccess(project)">
       <h1>
         {{project.name}}
-        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
       </h1>
     </div>
     <div class="text-error" ng-show="isProjectFailure(project)">
       <h1>
         {{project.name}}
-        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
       </h1>
     </div>
     <div class="text-warning" ng-show="isProjectNeverRun(project)">
       <h1>
         {{project.name}}
-        <div ng-show="isProjectBeingRun(project)" style="float: right;"><spinner-big></spinner-big></div>
       </h1>
+    </div>
+
+    <div class="well well-small" ng-show="isProjectBeingRun(project)">
+      <div class="progress progress-striped active">
+        <div class="bar" style="width: {{getProjectProgressPercent(project)}}%;"></div>
+      </div>
+      {{getProjectProgressPercent(project) | round}}% ({{getProjectElapsedTime(project) | formatRuntime}} elapsed)
     </div>
 
     <table class="table table-bordered">
