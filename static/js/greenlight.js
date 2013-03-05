@@ -107,6 +107,7 @@ function installProjectHelpers($scope) {
         if (elapsed < 0) {
             return 0;
         }
+        return elapsed;
     }
 
     $scope.getProjectProgressPercent = function(project) {
