@@ -32,6 +32,10 @@
           <td ng-show="project.mtime != null">{{project.mtime | date:'medium'}}</td>
           <td ng-show="project.mtime == null">Never</td>
         </tr>
+        <tr ng-show="project.runtime != null">
+          <td>Last runtime</td>
+          <td>{{project.runtime | formatRuntime}}</td>
+        </tr>
         <tr ng-show="project.out" ng-class="{success: isProjectSuccess(project)}">
           <td colspan="2">
             <div class="accordion-heading">

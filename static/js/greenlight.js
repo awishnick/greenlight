@@ -65,6 +65,12 @@ angular.module('greenlight', ['greenlightServices'])
             }
         }
     })
+    .filter('formatRuntime', function() {
+        return function(runtime) {
+            return jintervals(Math.round(runtime/1000),
+                              "{Minutes?, }{seconds}");
+        }
+    })
     ;
 
 function installProjectHelpers($scope) {

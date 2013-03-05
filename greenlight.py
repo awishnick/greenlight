@@ -65,25 +65,32 @@ def api_project_detail(project_idx):
         data['returncode'] = r.returncode
         data['out'] = r.out
         data['err'] = r.err
+        data['runtime'] = r.runtime
 
     return json_response(data)
 
 
 class Result:
-    def __init__(self, returncode, out, err, mtime):
+    def __init__(self, returncode, out, err, mtime, runtime):
         self.returncode = returncode
         self.out = out
         self.err = err
         self.mtime = mtime
+        self.runtime = runtime
 
     def __unicode__(self):
-        return str((self.returncode, self.out, self.err, self.mtime))
+        return str((self.returncode, self.out, self.err, self.mtime,
+                    self.runtime))
 
 
 class Status:
     def __init__(self, status, mtime):
         self.status = status
         self.mtime = mtime
+
+
+def seconds_to_milliseconds(sec):
+    return 1000 * sec
 
 
 class Worker:
@@ -105,9 +112,12 @@ class Worker:
 
             conn.send(Status('updating', self.mtime))
 
+            start_time = time.time()
             p = Popen(self.args, stdout=PIPE, stderr=PIPE, cwd=self.cwd)
             (out, err) = p.communicate()
-            r = Result(p.returncode, out, err, self.mtime)
+            end_time = time.time()
+            r = Result(p.returncode, out, err, self.mtime,
+                       seconds_to_milliseconds(end_time-start_time))
             conn.send(r)
 
     def need_to_update(self):
@@ -122,8 +132,7 @@ class Worker:
     def mtime_or_zero(self):
         if not os.path.exists(self.watch_modified):
             return 0
-        # Javascript wants times to be in seconds.
-        return os.path.getmtime(self.watch_modified) * 1000
+        return seconds_to_milliseconds(os.path.getmtime(self.watch_modified))
 
 
 class ResultReceiver:
