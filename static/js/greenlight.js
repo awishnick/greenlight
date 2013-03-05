@@ -177,7 +177,7 @@ function ProjectListCtrl($scope, $timeout, Project) {
                 }
             });
             updateTimer();
-        }, 5000);
+        }, 250);
     };
 
 
@@ -198,7 +198,7 @@ function ProjectDetailCtrl($scope, $routeParams, $timeout, Project) {
             });
 
             updateTimer();
-        }, 5000);
+        }, 250);
     };
 
     updateTimer();
