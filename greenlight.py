@@ -151,7 +151,7 @@ class ResultReceiver:
         self.status = None
         self.up_to_date = False
         self.mtime = None
-        self.runtimes = deque(maxlen=100)
+        self.runtimes = deque(maxlen=20)
 
     def get(self):
         while self.conn.poll():
